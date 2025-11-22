@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Seekr – AUS Lost & Found Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg-page: #f2ebe2;        /* main page background */
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border-soft: #e2e5ec;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+      --accent-main: #1e3a8a;    /* AUS-style blue */
+      --accent-secondary: #2563eb;
+      --accent-slate: #374151;
+
+      --lost-header: #b14f4f;    /* muted red */
+      --found-header: #4f7f63;   /* muted green */
+
+      --accent-ai: #059669;
+      --accent-ocr: #2563eb;
+      --accent-qr: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAVBAR – professional white bar */
+
+    .navbar-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      padding: 6px 0 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .navbar {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.13);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: #e5edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-main);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .nav-title-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .nav-title-main {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-slate);
+    }
+
+    .nav-title-sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-left: 32px;
+      flex: 1;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      color: #4b5563;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.08s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+
+    .nav-link.active,
+    .nav-link:hover {
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--accent-main);
+      transform: translateY(-1px);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      position: relative;
+    }
+
+    .notif-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: #e5edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      color: var(--accent-main);
+    }
+
+    .notif-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    .notif-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #dc2626;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+    }
+
+    .notif-panel {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      width: 290px;
+      background: #ffffff;
+      color: var(--text-main);
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
+      padding: 10px 12px;
+      border: 1px solid var(--border-soft);
+      display: none;
+      z-index: 25;
+    }
+
+    .notif-panel.visible {
+      display: block;
+    }
+
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .notif-header-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .notif-header-pill {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .notif-list {
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .notif-item {
+      padding: 8px 6px;
+      border-radius: 8px;
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 6px;
+      background: #f9fafb;
+    }
+
+    .notif-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .notif-icon-ai { background: var(--accent-ai); }
+    .notif-icon-ocr { background: var(--accent-ocr); }
+    .notif-icon-qr { background: var(--accent-qr); }
+
+    .notif-text-main { font-weight: 500; }
+    .notif-text-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 4px 10px 4px 4px;
+    }
+
+    .profile-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--accent-slate);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 15px;
+      color: white;
+    }
+
+    .profile-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .profile-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .profile-role {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    /* ROLE TOGGLE (Student | Security) */
+
+    .role-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #4b5563;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .role-label {
+      min-width: 50px;
+      text-align: right;
+    }
+
+    .role-label.role-security {
+      text-align: left;
+    }
+
+    .role-track {
+      width: 44px;
+      height: 22px;
+      border-radius: 999px;
+      background: #d1d5db;
+      position: relative;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+    }
+
+    .role-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: #4b5563;
+      transition: transform 0.18s ease, background 0.18s ease;
+      transform: translateX(0);
+    }
+
+    /* PAGE LAYOUT */
+
+    .page {
+      max-width: 1180px;
+      width: 100%;
+      margin: 32px auto 48px;
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    .welcome-row {
+      margin-bottom: 36px; /* extra space under welcome */
+    }
+
+    .welcome-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* KPIs */
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 34px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-soft);
+    }
+
+    .kpi-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: #e5edff;
+      color: var(--accent-main);
+    }
+
+    .kpi-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
+    .kpi-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* GENERIC CARD */
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 18px 20px 20px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 32px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .card-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #d1e0ff;
+    }
+
+    /* MAP CARD */
+
+    .map-toggle {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      overflow: hidden;
+      background: #f9fafb;
+      font-size: 11px;
+    }
+
+    .map-tab {
+      padding: 3px 10px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #6b7280;
+    }
+
+    .map-tab.active {
+      background: var(--accent-main);
+      color: #ffffff;
+    }
+
+    .map-shell {
+      border-radius: 12px;
+      background: #f4f5f7;
+      border: 1px solid var(--border-soft);
+      overflow: auto;         /* scroll inside map card */
+      position: relative;
+      margin-top: 6px;
+      max-height: 450px;      /* your chosen height */
+    }
+
+    .map-inner {
+      position: relative;
+      width: 100%;
+      display: block;
+    }
+
+    .map-inner img {
+      display: block;
+      width: 100%;
+      height: auto;
+      /* no max-height => do not shrink image */
+    }
+
+    .map-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      border: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.45);
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      background: var(--accent-main);
+      color: white;
+    }
+
+    .map-marker:hover {
+      transform: translate(-50%, -56%) scale(1.05);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.6);
+    }
+
+    .map-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #f9fafb;
+      border-top: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      row-gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .map-counts {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 6px;
+      background: var(--accent-main);
+    }
+
+    .map-list {
+      display: none;
+      padding: 10px 14px 12px;
+      background: #f9fafb;
+      border-top: 1px solid var(--border-soft);
+      font-size: 12px;
+    }
+
+    .map-list-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .map-list-items {
+      list-style: none;
+      padding-left: 0;
+      color: var(--text-muted);
+    }
+
+    .map-list-items li {
+      margin-bottom: 4px;
+    }
+
+    .map-tooltip {
+      position: absolute;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: var(--text-main);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.35);
+      border: 1px solid var(--border-soft);
+      display: none;
+      transform: translate(-50%, -120%);
+      pointer-events: none;
+      min-width: 130px;
+      text-align: left;
+    }
+
+    .map-tooltip-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    /* SMART INTELLIGENCE */
+
+    .intel-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .intel-card {
+      border-radius: 12px;
+      padding: 10px 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .intel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .intel-title {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .intel-icon-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .intel-icon-pill-ai { background: var(--accent-ai); }
+    .intel-icon-pill-ocr { background: var(--accent-ocr); }
+    .intel-icon-pill-qr { background: var(--accent-qr); }
+
+    .intel-status {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .intel-metric {
+      font-size: 11px;
+      color: #111827;
+    }
+
+    /* SECTION TITLE */
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    /* ACTIVITY PANELS */
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .activity-panel {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-soft);
+      background: #ffffff;
+    }
+
+    .panel-header {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #f9fafb;
+    }
+
+    .panel-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-title-icon svg {
+      width: 16px;
+      height: 16px;
+      stroke: #f9fafb;
+    }
+
+    .panel-title-text {
+      font-weight: 600;
+    }
+
+    .panel-header.lost {
+      background: var(--lost-header);
+    }
+
+    .panel-header.found {
+      background: var(--found-header);
+    }
+
+    .panel-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(249, 250, 251, 0.7);
+      background: rgba(15, 23, 42, 0.08);
+      color: #f9fafb;
+      cursor: pointer;
+    }
+
+    .panel-body {
+      padding: 12px 16px 14px;
+      background: #ffffff;
+    }
+
+    /* ITEM CARDS */
+
+    .item-card {
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      margin-bottom: 12px;
+    }
+
+    .item-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: #e5edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-main);
+      flex-shrink: 0;
+    }
+
+    .item-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
+    .item-body { flex: 1; }
+
+    .item-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .item-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .tag-status {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .item-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* FOOTER */
+
+    .footer {
+      width: 100%;
+      background: #e4ddd1;
+      color: #374151;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 12px;
+      border-top: 1px solid #cfc4b2;
+    }
+
+    .footer-left { max-width: 380px; }
+
+    .footer-brand {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .footer-center,
+    .footer-right {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-heading {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    .footer a {
+      color: #1f2933;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Security redirect popup */
+
+    .redirect-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+      display: none;
+      z-index: 50;
+    }
+
+    @media (max-width: 1180px) {
+      .intel-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .activity-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-wrap: wrap;
+        row-gap: 10px;
+      }
+      .nav-center {
+        display: none;
+      }
+      .page {
+        padding: 0 16px;
+      }
+      .kpi-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .intel-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar-wrapper">
+    <header class="navbar">
+      <div class="nav-left">
+        <div class="nav-logo">Q</div>
+        <div class="nav-title-text">
+          <div class="nav-title-main">THE SEEKR</div>
+          <div class="nav-title-sub">AUS Lost &amp; Found</div>
+        </div>
+      </div>
+
+      <nav class="nav-center">
+        <a href="Dashboard.html" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 10.5 12 4l8 6.5V20H4z" stroke-width="1.6"></path>
+            <path d="M10 20v-5h4v5" stroke-width="1.6"></path>
+          </svg>
+          Dashboard
+        </a>
+        <a href="ReportLost.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="6" stroke-width="1.6"></circle>
+            <line x1="16" y1="16" x2="20" y2="20" stroke-width="1.6"></line>
+          </svg>
+          Report Lost
+        </a>
+        <a href="ReportFound.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="7" width="14" height="10" rx="2" stroke-width="1.6"></rect>
+            <path d="M5 10h14" stroke-width="1.6"></path>
+          </svg>
+          Report Found
+        </a>
+        <a href="BrowseLost.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 7h14v11H5z" stroke-width="1.6"></path>
+            <path d="M9 11h6" stroke-width="1.6"></path>
+          </svg>
+          Lost Items
+        </a>
+        <a href="BrowseFound.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 7h10v10H7z" stroke-width="1.6"></path>
+            <path d="M9 9h6v6H9z" stroke-width="1.6"></path>
+          </svg>
+          Found Items
+        </a>
+      </nav>
+
+      <div class="nav-right">
+        <!-- Student | Security toggle -->
+        <div class="role-toggle" id="roleToggle" title="Switch to Security Panel">
+          <span class="role-label role-student">Student</span>
+          <div class="role-track">
+            <div class="role-thumb"></div>
+          </div>
+          <span class="role-label role-security">Security</span>
+        </div>
+
+        <!-- Notifications -->
+        <button class="notif-btn" id="notifToggle" aria-label="Open notifications">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3a4 4 0 0 0-4 4v2.5L7 12v1h10v-1l-1-2.5V7a4 4 0 0 0-4-4z" stroke-width="1.6"></path>
+            <path d="M10 17a2 2 0 0 0 4 0" stroke-width="1.6"></path>
+          </svg>
+          <span class="notif-dot" id="notifDot"></span>
+        </button>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-header">
+            <div class="notif-header-title">Smart Notifications</div>
+            <div class="notif-header-pill" id="notifCountLabel">3 new</div>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+
+        <!-- Profile -->
+        <div class="profile-pill" id="profilePill">
+          <div class="profile-avatar" id="initials">SS</div>
+          <div class="profile-text">
+            <div class="profile-name" id="profileName">Shaima Sajid</div>
+            <div class="profile-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <!-- SMALL POPUP FOR SECURITY REDIRECT -->
+  <div class="redirect-popup" id="securityPopup">
+    Redirecting to Security Panel…
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <main class="page">
+    <!-- Welcome -->
+    <section class="welcome-row">
+      <div>
+        <div class="welcome-title" id="welcomeTitle">Welcome back, Shaima</div>
+        <div class="welcome-sub">Student dashboard view</div>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="kpi-row">
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="5.5" stroke-width="1.6"></circle>
+            <line x1="14.5" y1="14.5" x2="19" y2="19" stroke-width="1.6"></line>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">My Lost Reports</div>
+          <div class="kpi-value" id="kpiMyLost">0</div>
+          <div class="kpi-sub">Items you’ve reported as lost</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="7" width="14" height="10" rx="2" stroke-width="1.6"></rect>
+            <path d="M5 10h14" stroke-width="1.6"></path>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">My Found Reports</div>
+          <div class="kpi-value" id="kpiMyFound">0</div>
+          <div class="kpi-sub">Items you handed in</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="7" stroke-width="1.6"></circle>
+            <path d="M12 8v4l3 2" stroke-width="1.6"></path>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">Active Lost</div>
+          <div class="kpi-value" id="kpiActiveLost">0</div>
+          <div class="kpi-sub">Open cases waiting to be matched</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M6 12.5 9.4 16 18 7" stroke-width="1.8"></path>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">Potential Matches</div>
+          <div class="kpi-value" id="kpiMatches">0</div>
+          <div class="kpi-sub">AI-suggested lost &amp; found pairs</div>
+        </div>
+      </article>
+    </section>
+
+    <!-- MAP CARD -->
+    <article class="card">
+      <header class="card-header">
+        <div>
+          <div class="card-title">Campus Item Map</div>
+          <div class="card-subtitle">
+            Visual hotspots for where items were recently reported on campus.
+          </div>
+        </div>
+        <div class="map-toggle">
+          <button class="map-tab active" id="mapTabMap">Map</button>
+          <button class="map-tab" id="mapTabList">List</button>
+        </div>
+      </header>
+
+      <div class="map-shell">
+        <!-- Map -->
+        <div class="map-inner" id="mapInner">
+          <img src="map.jpg" alt="AUS Campus Map" />
+          <!-- Clickable markers -->
+          <div class="map-marker"
+               style="top: 55%; left: 43%;"
+               data-id="1" data-lost="2" data-found="1">
+            1
+          </div>
+          <div class="map-marker"
+               style="top: 49%; left: 60%;"
+               data-id="2" data-lost="1" data-found="0">
+            2
+          </div>
+          <div class="map-marker"
+               style="top: 66%; left: 52%;"
+               data-id="3" data-lost="0" data-found="2">
+            3
+          </div>
+
+          <div class="map-tooltip" id="mapTooltip">
+            <div class="map-tooltip-title">Point</div>
+            <div class="map-tooltip-body" id="mapTooltipBody"></div>
+          </div>
+        </div>
+
+        <!-- List view -->
+        <div class="map-list" id="mapList">
+          <div class="map-list-title">Map points (summary)</div>
+          <ul class="map-list-items" id="mapListItems"></ul>
+        </div>
+
+        <div class="map-footer-row">
+          <div class="map-counts">
+            <span><span class="dot"></span><span id="mapLostCount"></span> lost reports</span>
+            <span><span class="dot"></span><span id="mapFoundCount"></span> found reports</span>
+          </div>
+          <div>Click a marker for counts at that point, or switch to list view.</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- SMART INTELLIGENCE -->
+    <article class="card">
+      <header class="card-header">
+        <div>
+          <div class="card-title">Smart Matching &amp; Verification</div>
+          <div class="card-subtitle">
+            AI image similarity, OCR extraction, and QR-based pickups behind the scenes.
+          </div>
+        </div>
+        <div class="card-pill">System Intelligence</div>
+      </header>
+
+      <div class="intel-grid">
+        <div class="intel-card">
+          <div class="intel-header">
+            <div class="intel-title">AI Image Matching</div>
+            <span class="intel-icon-pill intel-icon-pill-ai">Online</span>
+          </div>
+          <div class="intel-status">
+            Compares new lost &amp; found photos automatically.
+          </div>
+          <div class="intel-metric" id="intelAiMetric">
+            3 suggested matches in the last 24 hours.
+          </div>
+        </div>
+
+        <div class="intel-card">
+          <div class="intel-header">
+            <div class="intel-title">OCR Text Extraction</div>
+            <span class="intel-icon-pill intel-icon-pill-ocr">Stable</span>
+          </div>
+          <div class="intel-status">
+            Reads IDs, labels and serial numbers from item images.
+          </div>
+          <div class="intel-metric" id="intelOcrMetric">
+            4 items with searchable text this week.
+          </div>
+        </div>
+
+        <div class="intel-card">
+          <div class="intel-header">
+            <div class="intel-title">QR Pickup Verification</div>
+            <span class="intel-icon-pill intel-icon-pill-qr">Secure</span>
+          </div>
+          <div class="intel-status">
+            Security scans QR codes before releasing items.
+          </div>
+          <div class="intel-metric" id="intelQrMetric">
+            2 pickups verified today · 0 failed scans.
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- STUDENT VIEW ONLY -->
+    <h2 class="section-title">Recent Activity (Student View)</h2>
+
+    <section class="activity-grid">
+      <!-- LOST -->
+      <article class="activity-panel">
+        <div class="panel-header lost">
+          <div class="panel-header-left">
+            <div class="panel-title-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="5.5" stroke-width="1.6"></circle>
+                <line x1="14.5" y1="14.5" x2="19" y2="19" stroke-width="1.6"></line>
+              </svg>
+            </div>
+            <div class="panel-title-text">My Lost Items</div>
+          </div>
+          <button class="panel-btn" onclick="window.location.href='ReportLost.html'">
+            Report new
+          </button>
+        </div>
+        <div class="panel-body" id="lostList"></div>
+      </article>
+
+      <!-- FOUND -->
+      <article class="activity-panel">
+        <div class="panel-header found">
+          <div class="panel-header-left">
+            <div class="panel-title-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="7" width="14" height="10" rx="2" stroke-width="1.6"></rect>
+                <path d="M5 10h14" stroke-width="1.6"></path>
+              </svg>
+            </div>
+            <div class="panel-title-text">My Found Items</div>
+          </div>
+          <button class="panel-btn" onclick="window.location.href='ReportFound.html'">
+            Report new
+          </button>
+        </div>
+        <div class="panel-body" id="foundList"></div>
+      </article>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">
+      <div class="footer-brand">The Seekr – AUS Lost &amp; Found</div>
+      <div>
+        Digitizing the lost &amp; found workflow with AI, OCR, QR verification and secure logs.
+      </div>
+    </div>
+    <div class="footer-center">
+      <div class="footer-heading">Quick Links</div>
+      <a href="Dashboard.html">Dashboard</a>
+      <a href="BrowseLost.html">Browse lost items</a>
+      <a href="BrowseFound.html">Browse found items</a>
+    </div>
+    <div class="footer-right">
+      <div class="footer-heading">Project</div>
+      <div>COE 420 – Software Engineering</div>
+      <div>Developed by Shaima &amp; team</div>
+    </div>
+  </footer>
+
+  <script>
+    // User
+    const currentUser = { name: "Shaima Sajid", initials: "SS" };
+    document.getElementById("profileName").textContent = currentUser.name;
+    document.getElementById("initials").textContent = currentUser.initials;
+    document.getElementById("welcomeTitle").textContent =
+      "Welcome back, " + currentUser.name.split(" ")[0];
+
+    // Sample data
+    const lostItems = [
+      {
+        title: "Silver Keys with Red Keychain",
+        category: "keys",
+        status: "matched",
+        location: "Near main cafeteria"
+      },
+      {
+        title: "Blue iPhone 13",
+        category: "electronics",
+        status: "active",
+        location: "Student Center, 2nd floor"
+      },
+      {
+        title: "Black Leather Wallet",
+        category: "wallet",
+        status: "active",
+        location: "Library, Study Room 301"
+      }
+    ];
+
+    const foundItems = [
+      {
+        title: "Student ID Card",
+        category: "documents",
+        status: "available",
+        location: "Science Building — Security Desk"
+      },
+      {
+        title: "Silver Keys with Red Keychain",
+        category: "keys",
+        status: "available",
+        location: "Outside main cafeteria, table 12"
+      }
+    ];
+
+    const notifications = [
+      {
+        type: "ai",
+        title: "New AI match for your keys",
+        subtitle: "Your lost key report was matched with a found item."
+      },
+      {
+        type: "ocr",
+        title: "ID text extracted successfully",
+        subtitle: "OCR read the AUS ID from your photo for faster search."
+      },
+      {
+        type: "qr",
+        title: "Pickup ready with QR code",
+        subtitle: "Security can now scan the QR code to release the wallet."
+      }
+    ];
+
+    // KPIs
+    document.getElementById("kpiMyLost").textContent = lostItems.length;
+    document.getElementById("kpiMyFound").textContent = foundItems.length;
+    document.getElementById("kpiActiveLost").textContent =
+      lostItems.filter(i => i.status === "active").length;
+    document.getElementById("kpiMatches").textContent =
+      lostItems.filter(i => i.status === "matched").length;
+
+    // Map counters
+    document.getElementById("mapLostCount").textContent = lostItems.length;
+    document.getElementById("mapFoundCount").textContent = foundItems.length;
+
+    // Item icons (SVG)
+    function createCategoryIcon(category) {
+      const c = category.toLowerCase();
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "none");
+      svg.setAttribute("stroke", "currentColor");
+      svg.setAttribute("stroke-width", "1.6");
+      svg.setAttribute("stroke-linecap", "round");
+      svg.setAttribute("stroke-linejoin", "round");
+
+      if (c.includes("key")) {
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "8");
+        circle.setAttribute("cy", "10");
+        circle.setAttribute("r", "3");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M11 10h7l-1.5 2L18 14l-1 1");
+        svg.appendChild(circle);
+        svg.appendChild(path);
+        return svg;
+      }
+
+      if (c.includes("phone") || c.includes("electronic")) {
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", "8");
+        rect.setAttribute("y", "4");
+        rect.setAttribute("width", "8");
+        rect.setAttribute("height", "16");
+        rect.setAttribute("rx", "2");
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "12");
+        circle.setAttribute("cy", "17");
+        circle.setAttribute("r", "0.8");
+        svg.appendChild(rect);
+        svg.appendChild(circle);
+        return svg;
+      }
+
+      if (c.includes("wallet")) {
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", "5");
+        rect.setAttribute("y", "8");
+        rect.setAttribute("width", "14");
+        rect.setAttribute("height", "8");
+        rect.setAttribute("rx", "2");
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "15");
+        circle.setAttribute("cy", "12");
+        circle.setAttribute("r", "1");
+        svg.appendChild(rect);
+        svg.appendChild(circle);
+        return svg;
+      }
+
+      if (c.includes("cloth") || c.includes("hoodie")) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M9 5 7 7v12h10V7l-2-2-2 2-2-2-2 2z");
+        svg.appendChild(path);
+        return svg;
+      }
+
+      if (c.includes("id") || c.includes("document") || c.includes("card")) {
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", "4");
+        rect.setAttribute("y", "7");
+        rect.setAttribute("width", "16");
+        rect.setAttribute("height", "10");
+        rect.setAttribute("rx", "2");
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "8");
+        circle.setAttribute("cy", "12");
+        circle.setAttribute("r", "1.5");
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        line.setAttribute("d", "M12 11h5M12 13h4");
+        svg.appendChild(rect);
+        svg.appendChild(circle);
+        svg.appendChild(line);
+        return svg;
+      }
+
+      const box = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      box.setAttribute("d", "M7 8.5 12 6l5 2.5v7L12 18l-5-2.5z");
+      svg.appendChild(box);
+      return svg;
+    }
+
+    function createItemCard(item) {
+      const card = document.createElement("div");
+      card.className = "item-card";
+
+      const icon = document.createElement("div");
+      icon.className = "item-icon";
+      icon.appendChild(createCategoryIcon(item.category));
+
+      const body = document.createElement("div");
+      body.className = "item-body";
+
+      const title = document.createElement("div");
+      title.className = "item-title";
+      title.textContent = item.title;
+
+      const tags = document.createElement("div");
+      tags.className = "item-tags";
+
+      const catTag = document.createElement("span");
+      catTag.className = "tag";
+      catTag.textContent = item.category;
+      tags.appendChild(catTag);
+
+      const statusTag = document.createElement("span");
+      statusTag.className = "tag tag-status";
+      statusTag.textContent = item.status;
+      tags.appendChild(statusTag);
+
+      const meta = document.createElement("div");
+      meta.className = "item-meta";
+      meta.textContent = item.location;
+
+      body.appendChild(title);
+      body.appendChild(tags);
+      body.appendChild(meta);
+
+      card.appendChild(icon);
+      card.appendChild(body);
+      return card;
+    }
+
+    const lostList = document.getElementById("lostList");
+    const foundList = document.getElementById("foundList");
+    lostItems.forEach(item => lostList.appendChild(createItemCard(item)));
+    foundItems.forEach(item => foundList.appendChild(createItemCard(item)));
+
+    // Notifications
+    const notifPanel = document.getElementById("notifPanel");
+    const notifToggle = document.getElementById("notifToggle");
+    const notifDot = document.getElementById("notifDot");
+    const notifListEl = document.getElementById("notifList");
+    const notifCountLabel = document.getElementById("notifCountLabel");
+
+    function renderNotifications() {
+      notifListEl.innerHTML = "";
+      notifications.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "notif-item";
+
+        const icon = document.createElement("div");
+        icon.className =
+          "notif-icon " +
+          (n.type === "ai"
+            ? "notif-icon-ai"
+            : n.type === "ocr"
+            ? "notif-icon-ocr"
+            : "notif-icon-qr");
+        icon.textContent = n.type === "ai" ? "AI" : n.type === "ocr" ? "TX" : "QR";
+
+        const textWrap = document.createElement("div");
+        const main = document.createElement("div");
+        main.className = "notif-text-main";
+        main.textContent = n.title;
+
+        const sub = document.createElement("div");
+        sub.className = "notif-text-sub";
+        sub.textContent = n.subtitle;
+
+        textWrap.appendChild(main);
+        textWrap.appendChild(sub);
+
+        item.appendChild(icon);
+        item.appendChild(textWrap);
+        notifListEl.appendChild(item);
+      });
+
+      notifCountLabel.textContent =
+        notifications.length === 0
+          ? "No new alerts"
+          : notifications.length + " new";
+      notifDot.style.display = notifications.length ? "block" : "none";
+    }
+
+    renderNotifications();
+
+    notifToggle.addEventListener("click", () => {
+      notifPanel.classList.toggle("visible");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!notifPanel.contains(e.target) && !notifToggle.contains(e.target)) {
+        notifPanel.classList.remove("visible");
+      }
+    });
+
+    // Map tabs (Map / List)
+    const mapTabMap = document.getElementById("mapTabMap");
+    const mapTabList = document.getElementById("mapTabList");
+    const mapInner = document.getElementById("mapInner");
+    const mapList = document.getElementById("mapList");
+    const mapListItems = document.getElementById("mapListItems");
+
+    const markers = Array.from(document.querySelectorAll(".map-marker"));
+
+    markers.forEach(marker => {
+      const id = marker.dataset.id;
+      const lost = Number(marker.dataset.lost || 0);
+      const found = Number(marker.dataset.found || 0);
+      const li = document.createElement("li");
+      li.textContent = `Point ${id}: ${lost} lost · ${found} found reports`;
+      mapListItems.appendChild(li);
+    });
+
+    mapTabMap.addEventListener("click", () => {
+      mapTabMap.classList.add("active");
+      mapTabList.classList.remove("active");
+      mapInner.style.display = "block";
+      mapList.style.display = "none";
+    });
+
+    mapTabList.addEventListener("click", () => {
+      mapTabList.classList.add("active");
+      mapTabMap.classList.remove("active");
+      mapInner.style.display = "none";
+      mapList.style.display = "block";
+    });
+
+    // Marker tooltip
+    const tooltip = document.getElementById("mapTooltip");
+    const tooltipBody = document.getElementById("mapTooltipBody");
+
+    markers.forEach(marker => {
+      marker.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = marker.dataset.id;
+        const lost = Number(marker.dataset.lost || 0);
+        const found = Number(marker.dataset.found || 0);
+
+        tooltip.querySelector(".map-tooltip-title").textContent = `Point ${id}`;
+        tooltipBody.textContent = `${lost} lost · ${found} found report(s) here.`;
+
+        const rect = marker.getBoundingClientRect();
+        const containerRect = mapInner.getBoundingClientRect();
+        const offsetX = rect.left - containerRect.left + rect.width / 2;
+        const offsetY = rect.top - containerRect.top;
+
+        tooltip.style.left = offsetX + "px";
+        tooltip.style.top = offsetY + "px";
+        tooltip.style.display = "block";
+      });
+    });
+
+    mapInner.addEventListener("click", () => {
+      tooltip.style.display = "none";
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!mapInner.contains(e.target)) {
+        tooltip.style.display = "none";
+      }
+    });
+
+    // Security toggle: show popup then redirect
+    const roleToggle = document.getElementById("roleToggle");
+    const securityPopup = document.getElementById("securityPopup");
+
+    roleToggle.addEventListener("click", () => {
+      securityPopup.style.display = "block";
+      setTimeout(() => {
+        window.location.href = "SecurityPanel.html";
+      }, 900); // ~1 second
+    });
+  </script>
+</body>
+</html>

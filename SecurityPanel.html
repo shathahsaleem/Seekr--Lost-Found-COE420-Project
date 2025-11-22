@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Seekr – Security Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg-page: #f2ebe2;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border-soft: #e2e5ec;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+      --accent-main: #1e3a8a;
+      --accent-secondary: #2563eb;
+      --accent-slate: #374151;
+
+      --accent-success: #15803d;
+      --accent-warn: #d97706;
+      --accent-danger: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAVBAR */
+
+    .navbar-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      padding: 6px 0 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .navbar {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.13);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: #e5edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-main);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .nav-title-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .nav-title-main {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-slate);
+    }
+
+    .nav-title-sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-left: 32px;
+      flex: 1;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      color: #4b5563;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.08s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+
+    .nav-link.active,
+    .nav-link:hover {
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--accent-main);
+      transform: translateY(-1px);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      position: relative;
+    }
+
+    /* Notifications (reuse style) */
+
+    .notif-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: #e5edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      color: var(--accent-main);
+    }
+
+    .notif-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    .notif-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #dc2626;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+    }
+
+    .notif-panel {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      width: 290px;
+      background: #ffffff;
+      color: var(--text-main);
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
+      padding: 10px 12px;
+      border: 1px solid var(--border-soft);
+      display: none;
+      z-index: 25;
+    }
+
+    .notif-panel.visible {
+      display: block;
+    }
+
+    .notif-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .notif-header-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .notif-header-pill {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .notif-list {
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .notif-item {
+      padding: 8px 6px;
+      border-radius: 8px;
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 6px;
+      background: #f9fafb;
+    }
+
+    .notif-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #ffffff;
+      flex-shrink: 0;
+      background: var(--accent-secondary);
+    }
+
+    .notif-text-main { font-weight: 500; }
+    .notif-text-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 4px 10px 4px 4px;
+    }
+
+    .profile-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--accent-slate);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 15px;
+      color: white;
+    }
+
+    .profile-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .profile-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .profile-role {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    /* ROLE TOGGLE (here: already on Security) */
+
+    .role-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #4b5563;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .role-label {
+      min-width: 50px;
+      text-align: right;
+    }
+
+    .role-label.role-security {
+      text-align: left;
+    }
+
+    .role-track {
+      width: 44px;
+      height: 22px;
+      border-radius: 999px;
+      background: #d1d5db;
+      position: relative;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+    }
+
+    .role-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--accent-main);
+      transition: transform 0.18s ease, background 0.18s ease;
+      transform: translateX(20px); /* Security active by default */
+    }
+
+    .role-label.role-student {
+      color: #9ca3af;
+    }
+
+    .role-label.role-security {
+      color: var(--accent-main);
+      font-weight: 600;
+    }
+
+    /* PAGE */
+
+    .page {
+      max-width: 1180px;
+      width: 100%;
+      margin: 32px auto 48px;
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    .welcome-row {
+      margin-bottom: 30px;
+    }
+
+    .welcome-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* KPIs */
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-soft);
+    }
+
+    .kpi-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: #e5edff;
+      color: var(--accent-main);
+    }
+
+    .kpi-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
+    .kpi-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* CARDS */
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 18px 20px 20px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 26px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .card-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #d1e0ff;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    /* TABLES */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    thead {
+      background: #f3f4f6;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      font-weight: 600;
+      color: #374151;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-failed {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .status-waiting {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .status-hold {
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+
+    .btn-small {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      cursor: pointer;
+      color: #111827;
+    }
+
+    .btn-small:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-primary {
+      border-color: #1d4ed8;
+      background: #1d4ed8;
+      color: #f9fafb;
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+    }
+
+    .btn-link {
+      border: none;
+      background: transparent;
+      color: #1d4ed8;
+      padding: 0;
+    }
+
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+
+    .alert-list {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+
+    .alert-list li {
+      margin-bottom: 4px;
+    }
+
+    .alert-critical {
+      color: var(--accent-danger);
+    }
+
+    .alert-warn {
+      color: var(--accent-warn);
+    }
+
+    /* FOOTER */
+
+    .footer {
+      width: 100%;
+      background: #e4ddd1;
+      color: #374151;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 12px;
+      border-top: 1px solid #cfc4b2;
+    }
+
+    .footer-left { max-width: 380px; }
+
+    .footer-brand {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .footer-center,
+    .footer-right {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-heading {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    .footer a {
+      color: #1f2933;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Redirect popup */
+
+    .redirect-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.5);
+      display: none;
+      z-index: 50;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-wrap: wrap;
+        row-gap: 10px;
+      }
+      .nav-center {
+        display: none;
+      }
+      .page {
+        padding: 0 16px;
+      }
+      .kpi-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar-wrapper">
+    <header class="navbar">
+      <div class="nav-left">
+        <div class="nav-logo">Q</div>
+        <div class="nav-title-text">
+          <div class="nav-title-main">THE SEEKR</div>
+          <div class="nav-title-sub">AUS Lost &amp; Found</div>
+        </div>
+      </div>
+
+      <nav class="nav-center">
+        <a href="Dashboard.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 10.5 12 4l8 6.5V20H4z" stroke-width="1.6"></path>
+            <path d="M10 20v-5h4v5" stroke-width="1.6"></path>
+          </svg>
+          Dashboard
+        </a>
+        <a href="ReportLost.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="6" stroke-width="1.6"></circle>
+            <line x1="16" y1="16" x2="20" y2="20" stroke-width="1.6"></line>
+          </svg>
+          Report Lost
+        </a>
+        <a href="ReportFound.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="7" width="14" height="10" rx="2" stroke-width="1.6"></rect>
+            <path d="M5 10h14" stroke-width="1.6"></path>
+          </svg>
+          Report Found
+        </a>
+        <a href="BrowseLost.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 7h14v11H5z" stroke-width="1.6"></path>
+            <path d="M9 11h6" stroke-width="1.6"></path>
+          </svg>
+          Lost Items
+        </a>
+        <a href="BrowseFound.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 7h10v10H7z" stroke-width="1.6"></path>
+            <path d="M9 9h6v6H9z" stroke-width="1.6"></path>
+          </svg>
+          Found Items
+        </a>
+      </nav>
+
+      <div class="nav-right">
+        <!-- Student | Security toggle (here: Security -> click to go back to Student Dashboard) -->
+        <div class="role-toggle" id="roleToggle" title="Switch to Student Dashboard">
+          <span class="role-label role-student">Student</span>
+          <div class="role-track">
+            <div class="role-thumb"></div>
+          </div>
+          <span class="role-label role-security">Security</span>
+        </div>
+
+        <!-- Notifications -->
+        <button class="notif-btn" id="notifToggle" aria-label="Open notifications">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3a4 4 0 0 0-4 4v2.5L7 12v1h10v-1l-1-2.5V7a4 4 0 0 0-4-4z" stroke-width="1.6"></path>
+            <path d="M10 17a2 2 0 0 0 4 0" stroke-width="1.6"></path>
+          </svg>
+          <span class="notif-dot" id="notifDot"></span>
+        </button>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-header">
+            <div class="notif-header-title">Security Alerts</div>
+            <div class="notif-header-pill" id="notifCountLabel">3 alerts</div>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+
+        <!-- Profile -->
+        <div class="profile-pill">
+          <div class="profile-avatar" id="initials">SS</div>
+          <div class="profile-text">
+            <div class="profile-name" id="profileName">Security Desk</div>
+            <div class="profile-role">Campus Security</div>
+          </div>
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <!-- POPUP -->
+  <div class="redirect-popup" id="redirectPopup">
+    Switching to Student Dashboard…
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <main class="page">
+    <!-- Welcome -->
+    <section class="welcome-row">
+      <div>
+        <div class="welcome-title">Security Dashboard</div>
+        <div class="welcome-sub">
+          Manage QR pickups, item holds, and verification logs for Seekr.
+        </div>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="kpi-row">
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="4" width="14" height="16" rx="2" stroke-width="1.6"></rect>
+            <path d="M9 9h6M9 13h4" stroke-width="1.6"></path>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">Pending QR Scans</div>
+          <div class="kpi-value" id="kpiPending">0</div>
+          <div class="kpi-sub">Items waiting at the security desk</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 8h16v9H4z" stroke-width="1.6"></path>
+            <path d="M8 8V6a4 4 0 0 1 8 0v2" stroke-width="1.6"></path>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">Items on Hold</div>
+          <div class="kpi-value" id="kpiOnHold">0</div>
+          <div class="kpi-sub">Found items not yet released</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="7" stroke-width="1.6"></circle>
+            <path d="M9 12.5 11 14l4-4" stroke-width="1.8"></path>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">Pickups Today</div>
+          <div class="kpi-value" id="kpiPickups">0</div>
+          <div class="kpi-sub">QR-verified releases</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 6v6l3 2" stroke-width="1.6"></path>
+            <circle cx="12" cy="12" r="7" stroke-width="1.6"></circle>
+          </svg>
+        </div>
+        <div class="kpi-text">
+          <div class="kpi-label">Issues Flagged</div>
+          <div class="kpi-value" id="kpiIssues">0</div>
+          <div class="kpi-sub">Failed scans or mismatches</div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Pending QR Verification -->
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <div class="card-title">Pending QR Verifications</div>
+          <div class="card-subtitle">
+            Students who arrived to claim items. Scan and confirm before release.
+          </div>
+        </div>
+        <div class="card-pill">QR Queue</div>
+      </header>
+      <div class="card-body">
+        <table id="pendingTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Student</th>
+              <th>QR Code</th>
+              <th>Reported</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- JS fills -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Holding Desk -->
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <div class="card-title">Found Items – Holding Desk</div>
+          <div class="card-subtitle">
+            Items handed in by students or staff that are waiting for pickup.
+          </div>
+        </div>
+        <div class="card-pill">On Hold</div>
+      </header>
+      <div class="card-body">
+        <table id="holdingTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Found By</th>
+              <th>Location</th>
+              <th>On Hold Since</th>
+              <th>Status</th>
+              <th>Release</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- JS fills -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Logs + Alerts layout -->
+    <section style="display:grid; grid-template-columns: 3fr 2fr; gap:18px;">
+      <!-- Verification Logs -->
+      <article class="card">
+        <header class="card-header">
+          <div>
+            <div class="card-title">Verification Logs</div>
+            <div class="card-subtitle">
+              Record of QR scans and manual verifications handled by security.
+            </div>
+          </div>
+          <div class="card-pill">Today</div>
+        </header>
+        <div class="card-body" style="max-height:260px; overflow:auto;">
+          <table id="logsTable">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Item</th>
+                <th>Student</th>
+                <th>Result</th>
+                <th>Staff</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- JS fills -->
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <!-- Alerts & Manual Actions -->
+      <article class="card">
+        <header class="card-header">
+          <div>
+            <div class="card-title">Alerts &amp; Manual Actions</div>
+            <div class="card-subtitle">
+              Items needing additional checks, expired QR codes, or manual ID verification.
+            </div>
+          </div>
+          <div class="card-pill">Attention</div>
+        </header>
+        <div class="card-body">
+          <ul class="alert-list" id="alertsList">
+            <!-- JS fills -->
+          </ul>
+
+          <div style="margin-top:10px; font-size:12px; color:var(--text-main); font-weight:600;">
+            Quick Actions
+          </div>
+          <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">
+            <button class="btn-small">Verify via Student ID</button>
+            <button class="btn-small">Contact Owner</button>
+            <button class="btn-small">Mark Incorrect Claim</button>
+            <button class="btn-small">Extend Hold</button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">
+      <div class="footer-brand">The Seekr – Security Panel</div>
+      <div>
+        Campus Security view for AUS lost &amp; found — QR verification, holding desk and logs.
+      </div>
+    </div>
+    <div class="footer-center">
+      <div class="footer-heading">Navigation</div>
+      <a href="Dashboard.html">Student Dashboard</a>
+      <a href="BrowseLost.html">Browse Lost</a>
+      <a href="BrowseFound.html">Browse Found</a>
+    </div>
+    <div class="footer-right">
+      <div class="footer-heading">Project</div>
+      <div>COE 420 – Software Engineering</div>
+      <div>Developed by Shaima &amp; team</div>
+    </div>
+  </footer>
+
+  <script>
+    // Fake “logged-in” security profile
+    document.getElementById("profileName").textContent = "Security Desk";
+    document.getElementById("initials").textContent = "SD";
+
+    // Sample data
+    const pendingVerifications = [
+      {
+        item: "Black Leather Wallet",
+        student: "Omar Ali",
+        qr: "QR-9123",
+        reported: "Today, 10:15 AM",
+        status: "pending"
+      },
+      {
+        item: "Blue iPhone 13",
+        student: "Sara Ahmed",
+        qr: "QR-8840",
+        reported: "Today, 09:40 AM",
+        status: "pending"
+      }
+    ];
+
+    const holdingItems = [
+      {
+        item: "Grey Hoodie",
+        foundBy: "Student – ENG Building",
+        location: "Security Desk – Main Gate",
+        since: "2 days",
+        status: "waiting"
+      },
+      {
+        item: "AUS ID – 2023xxxx",
+        foundBy: "Library Staff",
+        location: "Library Front Desk",
+        since: "1 day",
+        status: "hold"
+      }
+    ];
+
+    const logs = [
+      {
+        time: "10:05 AM",
+        item: "Silver Keys with Red Keychain",
+        student: "Mohammed H.",
+        result: "success",
+        staff: "SD"
+      },
+      {
+        time: "09:20 AM",
+        item: "Laptop Bag (Black)",
+        student: "Unknown",
+        result: "failed",
+        staff: "SD"
+      },
+      {
+        time: "08:55 AM",
+        item: "Student ID – 2022xxxx",
+        student: "Fatima R.",
+        result: "success",
+        staff: "SD"
+      }
+    ];
+
+    const alerts = [
+      {
+        level: "critical",
+        text: "1 failed QR scan for Laptop Bag – requires manual ID verification."
+      },
+      {
+        level: "warn",
+        text: "Wallet on hold for more than 7 days – consider contacting owner or returning to main office."
+      },
+      {
+        level: "warn",
+        text: "2 items with duplicate photo matches – confirm with students before releasing."
+      }
+    ];
+
+    // KPIs
+    document.getElementById("kpiPending").textContent = pendingVerifications.length;
+    document.getElementById("kpiOnHold").textContent = holdingItems.length;
+    document.getElementById("kpiPickups").textContent =
+      logs.filter(l => l.result === "success").length;
+    document.getElementById("kpiIssues").textContent =
+      logs.filter(l => l.result === "failed").length;
+
+    // Fill Pending QR table
+    const pendingTableBody = document.querySelector("#pendingTable tbody");
+    pendingVerifications.forEach((row, index) => {
+      const tr = document.createElement("tr");
+
+      const tdItem = document.createElement("td");
+      tdItem.textContent = row.item;
+      const tdStudent = document.createElement("td");
+      tdStudent.textContent = row.student;
+      const tdQr = document.createElement("td");
+      tdQr.textContent = row.qr;
+      const tdReported = document.createElement("td");
+      tdReported.textContent = row.reported;
+
+      const tdStatus = document.createElement("td");
+      const statusSpan = document.createElement("span");
+      statusSpan.className = "status-pill status-pending";
+      statusSpan.textContent = "Waiting scan";
+      tdStatus.appendChild(statusSpan);
+
+      const tdAction = document.createElement("td");
+      const btnScan = document.createElement("button");
+      btnScan.className = "btn-small btn-primary";
+      btnScan.textContent = "Scan QR";
+      btnScan.addEventListener("click", () => {
+        // Simple simulation: first is success, second is failed
+        const success = index === 0;
+        statusSpan.className =
+          "status-pill " + (success ? "status-success" : "status-failed");
+        statusSpan.textContent = success ? "Verified" : "Scan failed";
+      });
+      tdAction.appendChild(btnScan);
+
+      tr.appendChild(tdItem);
+      tr.appendChild(tdStudent);
+      tr.appendChild(tdQr);
+      tr.appendChild(tdReported);
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdAction);
+
+      pendingTableBody.appendChild(tr);
+    });
+
+    // Holding desk table
+    const holdingTableBody = document.querySelector("#holdingTable tbody");
+    holdingItems.forEach((row) => {
+      const tr = document.createElement("tr");
+
+      const tdItem = document.createElement("td");
+      tdItem.textContent = row.item;
+      const tdFoundBy = document.createElement("td");
+      tdFoundBy.textContent = row.foundBy;
+      const tdLocation = document.createElement("td");
+      tdLocation.textContent = row.location;
+      const tdSince = document.createElement("td");
+      tdSince.textContent = row.since;
+
+      const tdStatus = document.createElement("td");
+      const statusSpan = document.createElement("span");
+      statusSpan.className =
+        "status-pill " +
+        (row.status === "waiting" ? "status-waiting" : "status-hold");
+      statusSpan.textContent =
+        row.status === "waiting" ? "Awaiting claim" : "On hold";
+      tdStatus.appendChild(statusSpan);
+
+      const tdRelease = document.createElement("td");
+      const btnRelease = document.createElement("button");
+      btnRelease.className = "btn-small";
+      btnRelease.textContent = "Mark released";
+      btnRelease.addEventListener("click", () => {
+        statusSpan.className = "status-pill status-success";
+        statusSpan.textContent = "Released";
+      });
+      tdRelease.appendChild(btnRelease);
+
+      tr.appendChild(tdItem);
+      tr.appendChild(tdFoundBy);
+      tr.appendChild(tdLocation);
+      tr.appendChild(tdSince);
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdRelease);
+
+      holdingTableBody.appendChild(tr);
+    });
+
+    // Logs table
+    const logsTableBody = document.querySelector("#logsTable tbody");
+    logs.forEach((row) => {
+      const tr = document.createElement("tr");
+
+      const tdTime = document.createElement("td");
+      tdTime.textContent = row.time;
+      const tdItem = document.createElement("td");
+      tdItem.textContent = row.item;
+      const tdStudent = document.createElement("td");
+      tdStudent.textContent = row.student;
+
+      const tdResult = document.createElement("td");
+      const statusSpan = document.createElement("span");
+      statusSpan.className =
+        "status-pill " +
+        (row.result === "success" ? "status-success" : "status-failed");
+      statusSpan.textContent =
+        row.result === "success" ? "Verified" : "Failed";
+      tdResult.appendChild(statusSpan);
+
+      const tdStaff = document.createElement("td");
+      tdStaff.textContent = row.staff;
+
+      tr.appendChild(tdTime);
+      tr.appendChild(tdItem);
+      tr.appendChild(tdStudent);
+      tr.appendChild(tdResult);
+      tr.appendChild(tdStaff);
+
+      logsTableBody.appendChild(tr);
+    });
+
+    // Alerts list
+    const alertsList = document.getElementById("alertsList");
+    alerts.forEach(a => {
+      const li = document.createElement("li");
+      li.textContent = a.text;
+      li.className =
+        a.level === "critical" ? "alert-critical" : "alert-warn";
+      alertsList.appendChild(li);
+    });
+
+    // Notifications (simple)
+    const notifPanel = document.getElementById("notifPanel");
+    const notifToggle = document.getElementById("notifToggle");
+    const notifDot = document.getElementById("notifDot");
+    const notifListEl = document.getElementById("notifList");
+    const notifCountLabel = document.getElementById("notifCountLabel");
+
+    const notifData = [
+      {
+        title: "Failed QR scan",
+        subtitle: "Laptop Bag – manual check required."
+      },
+      {
+        title: "Item on hold > 7 days",
+        subtitle: "Wallet might need escalation."
+      },
+      {
+        title: "Duplicate match",
+        subtitle: "Two students matched for the same hoodie."
+      }
+    ];
+
+    function renderNotifications() {
+      notifListEl.innerHTML = "";
+      notifData.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "notif-item";
+
+        const icon = document.createElement("div");
+        icon.className = "notif-icon";
+        icon.textContent = "!";
+
+        const textWrap = document.createElement("div");
+        const main = document.createElement("div");
+        main.className = "notif-text-main";
+        main.textContent = n.title;
+
+        const sub = document.createElement("div");
+        sub.className = "notif-text-sub";
+        sub.textContent = n.subtitle;
+
+        textWrap.appendChild(main);
+        textWrap.appendChild(sub);
+
+        item.appendChild(icon);
+        item.appendChild(textWrap);
+        notifListEl.appendChild(item);
+      });
+
+      notifCountLabel.textContent =
+        notifData.length === 0 ? "No alerts" : notifData.length + " alerts";
+      notifDot.style.display = notifData.length ? "block" : "none";
+    }
+
+    renderNotifications();
+
+    notifToggle.addEventListener("click", () => {
+      notifPanel.classList.toggle("visible");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!notifPanel.contains(e.target) && !notifToggle.contains(e.target)) {
+        notifPanel.classList.remove("visible");
+      }
+    });
+
+    // Role toggle: back to Student Dashboard
+    const roleToggle = document.getElementById("roleToggle");
+    const redirectPopup = document.getElementById("redirectPopup");
+
+    roleToggle.addEventListener("click", () => {
+      redirectPopup.style.display = "block";
+      setTimeout(() => {
+        window.location.href = "Dashboard.html";
+      }, 900);
+    });
+  </script>
+</body>
+</html>

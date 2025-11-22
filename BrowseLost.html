@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Seekr – Lost Items</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg-page: #f2ebe2;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border-soft: #e2e5ec;
+      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+      --accent-main: #1e3a8a;
+      --accent-line: #f8e6a3;
+
+      --badge-missing-bg: #fee2e2;
+      --badge-missing-text: #b91c1c;
+
+      --tag-bg: #e5e7eb;
+      --tag-text: #374151;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
+
+    body {
+      background: var(--bg-page);
+      min-height:100vh;
+      color:var(--text-main);
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* NAVBAR (same as Dashboard) */
+    .navbar-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      padding: 6px 0 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .navbar {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 10px 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      border:1px solid rgba(0,0,0,0.12);
+    }
+
+    .nav-left { display:flex; align-items:center; gap:10px; }
+
+    .nav-logo {
+      width:34px; height:34px;
+      border-radius:999px;
+      background:#e5edff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:18px;
+      color:var(--accent-main);
+    }
+
+    .nav-title { display:flex; flex-direction:column; line-height:1.1; }
+    .nav-title-main { font-size:15px; font-weight:700; letter-spacing:0.08em; }
+    .nav-title-sub { font-size:11px; color:var(--text-muted); }
+
+    .nav-center {
+      display:flex;
+      align-items:center;
+      gap:18px;
+      margin-left:30px;
+      flex:1;
+    }
+
+    .nav-link {
+      padding:6px 12px;
+      border-radius:999px;
+      text-decoration:none;
+      font-size:13px;
+      color:#4b5563;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      transition:0.2s;
+    }
+
+    .nav-link svg { width:18px; height:18px; stroke:currentColor; }
+
+    .nav-link.active,
+    .nav-link:hover {
+      background:rgba(30,58,138,0.12);
+      color:var(--accent-main);
+    }
+
+    .nav-right { display:flex; align-items:center; gap:18px; }
+
+    .notif-btn {
+      width:34px; height:34px;
+      border-radius:999px;
+      border:none;
+      background:#eef2ff;
+      color:var(--accent-main);
+      display:flex;
+      align-items:center; justify-content:center;
+      cursor:pointer;
+      position:relative;
+    }
+    .notif-btn svg { width:18px; height:18px; }
+    .notif-dot {
+      position:absolute;
+      top:6px; right:6px;
+      width:8px; height:8px;
+      border-radius:999px;
+      background:#dc2626;
+    }
+
+    .profile-pill {
+      display:flex; align-items:center; gap:8px;
+      background:#f3f4f6;
+      padding:4px 12px 4px 4px;
+      border-radius:999px;
+    }
+    .profile-avatar {
+      width:30px; height:30px;
+      border-radius:999px;
+      background:#1e3a8a;
+      color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:600;
+    }
+    .profile-text { display:flex; flex-direction:column; line-height:1.1; }
+    .profile-name { font-size:13px; font-weight:600; }
+    .profile-role { font-size:11px; color:var(--text-muted); }
+
+    .role-toggle {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      font-size:11px;
+      color:#444;
+    }
+    .role-track {
+      width:44px; height:22px;
+      background:#d1d5db;
+      border-radius:999px;
+      padding:3px;
+      display:flex; align-items:center;
+    }
+    .role-thumb {
+      width:16px; height:16px;
+      border-radius:999px;
+      background:#4b5563;
+      transform:translateX(0);
+      transition:0.2s;
+    }
+
+    /* PAGE */
+    .page {
+      max-width:1100px;
+      width:100%;
+      margin:32px auto 48px;
+      padding:0 20px;
+      flex:1;
+    }
+
+    .title-row h1 { font-size:28px; font-weight:700; }
+    .title-row p { font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+    /* FILTER BAR */
+    .filters-card {
+      margin-top:20px;
+      background:#fff;
+      border-radius:16px;
+      box-shadow:var(--shadow-soft);
+      border:1px solid var(--border-soft);
+      padding:16px 18px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-start;
+    }
+
+    .search-input {
+      border-radius:999px;
+      border:1px solid var(--border-soft);
+      padding:9px 14px;
+      background:#f9fafb;
+      font-size:13px;
+
+      width:300px;
+      flex:0 0 auto;
+
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .search-input input {
+      border:none;
+      outline:none;
+      background:transparent;
+      width:100%;
+      font-size:13px;
+    }
+
+    .filter-select {
+      border-radius:999px;
+      border:1px solid var(--border-soft);
+      padding:9px 14px;
+      background:#f9fafb;
+      font-size:13px;
+
+      width:200px;
+      flex:0 0 auto;
+    }
+
+    /* GRID */
+    .results-meta {
+      margin-top:20px;
+      font-size:13px;
+      color:var(--text-muted);
+    }
+
+    .grid {
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+      gap:18px;
+    }
+
+    .item-card {
+      background:#ffffff;
+      border-radius:18px;
+      box-shadow:var(--shadow-soft);
+      border:1px solid #e5e7eb;
+      overflow:hidden;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      transition:transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .item-card:hover {
+      transform:translateY(-2px);
+      box-shadow:0 12px 30px rgba(15,23,42,0.12);
+    }
+
+    .item-image-wrapper {
+      background:#f3f4f6;
+      height:150px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .placeholder-icon {
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      border:1px dashed #cbd5e1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#9ca3af;
+    }
+
+    .placeholder-icon svg { width:24px; height:24px; stroke:currentColor; }
+
+    .item-body {
+      padding:14px 16px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .item-title {
+      font-size:15px;
+      font-weight:600;
+    }
+
+    .item-tags {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .tag {
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:11px;
+      background:var(--tag-bg);
+      color:var(--tag-text);
+    }
+
+    .status-badge {
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:11px;
+      background:var(--badge-missing-bg);
+      color:var(--badge-missing-text);
+      font-weight:500;
+      text-transform:uppercase;
+    }
+
+    .item-meta {
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      font-size:12px;
+      color:var(--text-muted);
+    }
+
+    .item-meta-row {
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .item-meta-row svg {
+      width:14px;
+      height:14px;
+      stroke:#9ca3af;
+    }
+
+    /* MODAL */
+    .modal-backdrop {
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:100;
+    }
+
+    .modal {
+      background:#ffffff;
+      border-radius:18px;
+      box-shadow:0 18px 45px rgba(15,23,42,0.35);
+      max-width:640px;
+      width:100%;
+      padding:20px 22px 18px;
+    }
+
+    .modal-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+    }
+
+    .modal-title {
+      font-size:18px;
+      font-weight:600;
+    }
+
+    .modal-close-btn {
+      border:none;
+      background:#f3f4f6;
+      border-radius:999px;
+      width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+    }
+
+    .modal-content {
+      display:grid;
+      grid-template-columns: 1.2fr 1.6fr;
+      gap:16px;
+      margin-top:6px;
+    }
+
+    .modal-image-wrapper {
+      background:#f3f4f6;
+      border-radius:12px;
+      min-height:160px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .modal-image-wrapper img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .modal-section-title {
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+
+    .modal-text {
+      font-size:13px;
+      color:var(--text-muted);
+      margin-bottom:10px;
+    }
+
+    .modal-meta {
+      font-size:13px;
+      color:var(--text-muted);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:10px;
+    }
+
+    .modal-footer {
+      margin-top:10px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+    }
+
+    .btn-secondary {
+      padding:9px 14px;
+      background:#f3f4f6;
+      border-radius:999px;
+      border:1px solid #d1d5db;
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    .btn-primary {
+      padding:9px 16px;
+      background:#1e3a8a;
+      color:white;
+      border-radius:999px;
+      border:none;
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    /* FOOTER */
+    .footer {
+      background:#e4ddd1;
+      padding:16px 30px;
+      display:flex;
+      justify-content:space-between;
+      border-top:1px solid #cfc4b2;
+      font-size:12px;
+    }
+
+    .redirect-popup {
+      position:fixed;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      background:#111827;
+      color:white;
+      padding:10px 16px;
+      border-radius:8px;
+      font-size:13px;
+      display:none;
+      z-index:120;
+    }
+
+    @media (max-width:700px) {
+      .modal-content { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar-wrapper">
+  <header class="navbar">
+
+    <div class="nav-left">
+      <div class="nav-logo">Q</div>
+      <div class="nav-title">
+        <span class="nav-title-main">THE SEEKR</span>
+        <span class="nav-title-sub">AUS Lost &amp; Found</span>
+      </div>
+    </div>
+
+    <nav class="nav-center">
+      <a href="Dashboard.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M4 10.5 12 4l8 6.5V20H4z" stroke-width="1.6"></path>
+          <path d="M10 20v-5h4v5" stroke-width="1.6"></path>
+        </svg>
+        Dashboard
+      </a>
+
+      <a href="ReportLost.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="6" stroke-width="1.6"></circle>
+          <line x1="16" y1="16" x2="20" y2="20" stroke-width="1.6"></line>
+        </svg>
+        Report Lost
+      </a>
+
+      <a href="ReportFound.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="5" y="7" width="14" height="10" rx="2" stroke-width="1.6"></rect>
+          <path d="M5 10h14" stroke-width="1.6"></path>
+        </svg>
+        Report Found
+      </a>
+
+      <a href="BrowseLost.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M5 7h14v11H5z" stroke-width="1.6"></path>
+          <path d="M9 11h6" stroke-width="1.6"></path>
+        </svg>
+        Lost Items
+      </a>
+
+      <a href="BrowseFound.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M7 7h10v10H7z" stroke-width="1.6"></path>
+          <path d="M9 9h6v6H9z" stroke-width="1.6"></path>
+        </svg>
+        Found Items
+      </a>
+    </nav>
+
+    <div class="nav-right">
+      <div id="roleToggle" class="role-toggle">
+        <span>Student</span>
+        <div class="role-track"><div class="role-thumb"></div></div>
+        <span>Security</span>
+      </div>
+      <div class="profile-pill">
+        <div class="profile-avatar">SS</div>
+        <div class="profile-text">
+          <span class="profile-name">Shaima Sajid</span>
+          <span class="profile-role">Student</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+</div>
+
+<div id="redirectPopup" class="redirect-popup">Redirecting to Security Panel…</div>
+
+<!-- PAGE -->
+<main class="page">
+
+  <div class="title-row">
+    <h1>Lost Items</h1>
+    <p>Browse all items that students have reported missing on campus.</p>
+  </div>
+
+  <!-- FILTERS -->
+  <section class="filters-card">
+
+    <div class="search-input">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="6" stroke="#9ca3af" stroke-width="1.6"></circle>
+        <line x1="16" y1="16" x2="20" y2="20" stroke="#9ca3af" stroke-width="1.6"></line>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Search lost items…">
+    </div>
+
+    <select id="categoryFilter" class="filter-select">
+      <option value="all">All categories</option>
+      <option value="Electronics">Electronics</option>
+      <option value="Wallet / Purse">Wallet / Purse</option>
+      <option value="Keys">Keys</option>
+      <option value="ID / Documents">ID / Documents</option>
+      <option value="Clothing">Clothing</option>
+      <option value="Bag / Backpack">Bag / Backpack</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <select id="statusFilter" class="filter-select">
+      <option value="all">All statuses</option>
+      <option value="missing">Missing</option>
+      <option value="resolved">Resolved</option>
+    </select>
+
+  </section>
+
+  <p class="results-meta" id="resultsMeta">Showing 5 lost items</p>
+
+  <!-- GRID -->
+  <section class="grid" id="itemsGrid">
+
+    <!-- Card 1 -->
+    <article class="item-card"
+      data-name="Black Laptop"
+      data-category="Electronics"
+      data-status="missing"
+      data-location="Last seen in Library, 3rd floor"
+      data-date="2025-01-19"
+      data-description="Black 14-inch laptop, last used in the Library 3rd floor study area. Has a blue sticker on the lid."
+      data-image="">
+      <div class="item-image-wrapper">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="6" width="16" height="10" rx="2" stroke-width="1.6"></rect>
+            <path d="M3 18h18" stroke-width="1.6"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="item-body">
+        <div class="item-title">Black Laptop</div>
+        <div class="item-tags">
+          <span class="tag">Electronics</span>
+          <span class="status-badge">missing</span>
+        </div>
+        <div class="item-meta">
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 5a6 6 0 0 0-6 6c0 4.5 6 8 6 8s6-3.5 6-8a6 6 0 0 0-6-6z" stroke-width="1.6"></path>
+            </svg>
+            <span>Library, 3rd floor study area</span>
+          </div>
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 5h10M12 3v2M7 9h10M7 13h6" stroke-width="1.6"></path>
+              <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="1.6"></rect>
+            </svg>
+            <span>Jan 19, 2025</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2 -->
+    <article class="item-card"
+      data-name="Brown Wallet with Card Holder"
+      data-category="Wallet / Purse"
+      data-status="missing"
+      data-location="Last seen in Main Cafeteria"
+      data-date="2025-01-18"
+      data-description="Brown leather wallet with attached card holder. Last seen on a table in the Main Cafeteria."
+      data-image="">
+      <div class="item-image-wrapper">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="7" width="16" height="10" rx="2" stroke-width="1.6"></rect>
+            <path d="M7 10h5" stroke-width="1.6"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="item-body">
+        <div class="item-title">Brown Wallet with Card Holder</div>
+        <div class="item-tags">
+          <span class="tag">Wallet / Purse</span>
+          <span class="status-badge">missing</span>
+        </div>
+        <div class="item-meta">
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 5a6 6 0 0 0-6 6c0 4.5 6 8 6 8s6-3.5 6-8a6 6 0 0 0-6-6z" stroke-width="1.6"></path>
+            </svg>
+            <span>Main Cafeteria</span>
+          </div>
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 5h10M12 3v2M7 9h10M7 13h6" stroke-width="1.6"></path>
+              <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="1.6"></rect>
+            </svg>
+            <span>Jan 18, 2025</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3 -->
+    <article class="item-card"
+      data-name="Set of Apartment Keys"
+      data-category="Keys"
+      data-status="missing"
+      data-location="Last seen near Parking Lot B"
+      data-date="2025-01-17"
+      data-description="Set of 4 keys on a black keyring, possibly for an off-campus apartment. Last seen near Parking Lot B."
+      data-image="">
+      <div class="item-image-wrapper">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="9" cy="9" r="3" stroke-width="1.6"></circle>
+            <path d="M11 11l5 5-1.5 1.5" stroke-width="1.6"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="item-body">
+        <div class="item-title">Set of Apartment Keys</div>
+        <div class="item-tags">
+          <span class="tag">Keys</span>
+          <span class="status-badge">missing</span>
+        </div>
+        <div class="item-meta">
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 5a6 6 0 0 0-6 6c0 4.5 6 8 6 8s6-3.5 6-8a6 6 0 0 0-6-6z" stroke-width="1.6"></path>
+            </svg>
+            <span>Parking Lot B</span>
+          </div>
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 5h10M12 3v2M7 9h10M7 13h6" stroke-width="1.6"></path>
+              <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="1.6"></rect>
+            </svg>
+            <span>Jan 17, 2025</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4 -->
+    <article class="item-card"
+      data-name="Blue AUS Hoodie"
+      data-category="Clothing"
+      data-status="missing"
+      data-location="Last seen in Sports Complex"
+      data-date="2025-01-16"
+      data-description="Blue AUS hoodie with white logo. Last remembered in the seating area of the Sports Complex."
+      data-image="">
+      <div class="item-image-wrapper">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 5 7 8v11h10V8l-2-3" stroke-width="1.6"></path>
+            <path d="M9 5h6" stroke-width="1.6"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="item-body">
+        <div class="item-title">Blue AUS Hoodie</div>
+        <div class="item-tags">
+          <span class="tag">Clothing</span>
+          <span class="status-badge">missing</span>
+        </div>
+        <div class="item-meta">
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 5a6 6 0 0 0-6 6c0 4.5 6 8 6 8s6-3.5 6-8a6 6 0 0 0-6-6z" stroke-width="1.6"></path>
+            </svg>
+            <span>Sports Complex seating</span>
+          </div>
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 5h10M12 3v2M7 9h10M7 13h6" stroke-width="1.6"></path>
+              <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="1.6"></rect>
+            </svg>
+            <span>Jan 16, 2025</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 5 -->
+    <article class="item-card"
+      data-name="Grey Backpack"
+      data-category="Bag / Backpack"
+      data-status="missing"
+      data-location="Last seen in Engineering Building"
+      data-date="2025-01-15"
+      data-description="Grey backpack with laptop sleeve and water bottle pocket. Last seen in an ESB classroom."
+      data-image="">
+      <div class="item-image-wrapper">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="6" y="5" width="12" height="14" rx="2" stroke-width="1.6"></rect>
+            <path d="M9 9h6" stroke-width="1.6"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="item-body">
+        <div class="item-title">Grey Backpack</div>
+        <div class="item-tags">
+          <span class="tag">Bag / Backpack</span>
+          <span class="status-badge">missing</span>
+        </div>
+        <div class="item-meta">
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 5a6 6 0 0 0-6 6c0 4.5 6 8 6 8s6-3.5 6-8a6 6 0 0 0-6-6z" stroke-width="1.6"></path>
+            </svg>
+            <span>Engineering Building (ESB)</span>
+          </div>
+          <div class="item-meta-row">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 5h10M12 3v2M7 9h10M7 13h6" stroke-width="1.6"></path>
+              <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="1.6"></rect>
+            </svg>
+            <span>Jan 15, 2025</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Item title</div>
+      <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+    </div>
+
+    <div class="modal-content">
+      <div class="modal-image-wrapper" id="modalImageWrapper">
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 5h10v10H7z" stroke-width="1.6"></path>
+            <path d="M9 9h6v6H9z" stroke-width="1.6"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div>
+        <div class="item-tags" style="margin-bottom:8px;">
+          <span class="tag" id="modalCategory">Category</span>
+          <span class="status-badge" id="modalStatus">missing</span>
+        </div>
+
+        <div class="modal-section-title">Description</div>
+        <p class="modal-text" id="modalDescription">
+          Full description will appear here.
+        </p>
+
+        <div class="modal-section-title">Details</div>
+        <div class="modal-meta">
+          <span id="modalLocation">Last seen: …</span>
+          <span id="modalDate">Lost on: …</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="modalCancelBtn">Close</button>
+      <button class="btn-primary">Check Matches</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div>© 2025 The Seekr – AUS Lost & Found</div>
+  <div>COE 420 • Shaima & Team</div>
+</footer>
+
+<script>
+  // ROLE TOGGLE -> Security panel
+  const roleToggle = document.getElementById("roleToggle");
+  const redirectPopup = document.getElementById("redirectPopup");
+
+  roleToggle.addEventListener("click", () => {
+    redirectPopup.style.display = "block";
+    setTimeout(() => { window.location.href = "SecurityPanel.html"; }, 900);
+  });
+
+  // FILTERS
+  const searchInput = document.getElementById("searchInput");
+  const categoryFilter = document.getElementById("categoryFilter");
+  const statusFilter = document.getElementById("statusFilter");
+  const itemsGrid = document.getElementById("itemsGrid");
+  const resultsMeta = document.getElementById("resultsMeta");
+
+  function applyFilters() {
+    const term = searchInput.value.toLowerCase().trim();
+    const category = categoryFilter.value;
+    const status = statusFilter.value;
+
+    let visibleCount = 0;
+
+    Array.from(itemsGrid.children).forEach(card => {
+      const name = card.dataset.name.toLowerCase();
+      const cat = card.dataset.category;
+      const st = card.dataset.status;
+
+      const matchesSearch = !term || name.includes(term);
+      const matchesCat = (category === "all" || category === cat);
+      const matchesStatus = (status === "all" || status === st);
+
+      if (matchesSearch && matchesCat && matchesStatus) {
+        card.style.display = "";
+        visibleCount++;
+      } else {
+        card.style.display = "none";
+      }
+    });
+
+    resultsMeta.textContent = `Showing ${visibleCount} lost item${visibleCount === 1 ? "" : "s"}`;
+  }
+
+  searchInput.addEventListener("input", applyFilters);
+  categoryFilter.addEventListener("change", applyFilters);
+  statusFilter.addEventListener("change", applyFilters);
+
+  // MODAL
+  const modalBackdrop = document.getElementById("modalBackdrop");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalCategory = document.getElementById("modalCategory");
+  const modalStatus = document.getElementById("modalStatus");
+  const modalDescription = document.getElementById("modalDescription");
+  const modalLocation = document.getElementById("modalLocation");
+  const modalDate = document.getElementById("modalDate");
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+  const modalCancelBtn = document.getElementById("modalCancelBtn");
+
+  function openModalFromCard(card) {
+    modalTitle.textContent = card.dataset.name;
+    modalCategory.textContent = card.dataset.category;
+    modalStatus.textContent = card.dataset.status;
+    modalDescription.textContent = card.dataset.description;
+    modalLocation.textContent = `Last seen: ${card.dataset.location}`;
+    modalDate.textContent = `Lost on: ${card.dataset.date}`;
+    modalBackdrop.style.display = "flex";
+  }
+
+  Array.from(itemsGrid.children).forEach(card => {
+    card.addEventListener("click", () => openModalFromCard(card));
+  });
+
+  function closeModal() { modalBackdrop.style.display = "none"; }
+
+  modalCloseBtn.addEventListener("click", closeModal);
+  modalCancelBtn.addEventListener("click", closeModal);
+  modalBackdrop.addEventListener("click", e => {
+    if (e.target === modalBackdrop) closeModal();
+  });
+
+  // Initial
+  applyFilters();
+</script>
+
+</body>
+</html>

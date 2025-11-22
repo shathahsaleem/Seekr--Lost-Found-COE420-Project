@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Seekr – Report Lost Item</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg-page: #f2ebe2;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border-soft: #e2e5ec;
+      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+      --accent-main: #1e3a8a;
+      --accent-line: #f8e6a3;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
+
+    body {
+      background: var(--bg-page);
+      min-height:100vh;
+      color:var(--text-main);
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* NAVBAR — COPIED EXACTLY FROM DASHBOARD */
+    .navbar-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      padding: 6px 0 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .navbar {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 10px 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      border:1px solid rgba(0,0,0,0.12);
+    }
+
+    .nav-left {
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .nav-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: #e5edff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--accent-main);
+    }
+
+    .nav-title {
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+
+    .nav-title-main {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .nav-title-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .nav-center {
+      display:flex;
+      gap:18px;
+      margin-left:32px;
+      flex:1;
+      align-items:center;
+    }
+
+    .nav-link {
+      text-decoration:none;
+      color:#4b5563;
+      font-size:13px;
+      padding:6px 12px;
+      border-radius:999px;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      transition:0.2s ease;
+    }
+
+    .nav-link.active,
+    .nav-link:hover {
+      background:rgba(30,58,138,0.12);
+      color:var(--accent-main);
+    }
+
+    .nav-link svg {
+      width:18px;
+      height:18px;
+      stroke:currentColor;
+    }
+
+    .nav-right {
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    /* Notification bell */
+    .notif-btn {
+      position:relative;
+      width:34px;
+      height:34px;
+      border:none;
+      border-radius:999px;
+      background:#eef2ff;
+      color:var(--accent-main);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+
+    .notif-btn svg { width:18px; height:18px; }
+
+    .notif-dot {
+      position:absolute;
+      top:6px;
+      right:6px;
+      width:8px;
+      height:8px;
+      background:#dc2626;
+      border-radius:999px;
+    }
+
+    /* Profile pill */
+    .profile-pill {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#f3f4f6;
+      padding:4px 12px 4px 4px;
+      border-radius:999px;
+    }
+
+    .profile-avatar {
+      width:30px;
+      height:30px;
+      border-radius:999px;
+      background:#1e3a8a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-weight:600;
+    }
+
+    .profile-text {
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+
+    .profile-name { font-size:13px; font-weight:600; }
+    .profile-role { font-size:11px; color:#6b7280; }
+
+    /* Toggle */
+    .role-toggle {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      font-size:11px;
+      color:#444;
+    }
+
+    .role-track {
+      width:44px;
+      height:22px;
+      background:#d1d5db;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      padding:3px;
+    }
+
+    .role-thumb {
+      width:16px;
+      height:16px;
+      border-radius:999px;
+      background:#4b5563;
+      transform:translateX(0);
+      transition:0.2s;
+    }
+
+    /* PAGE */
+    .page {
+      max-width:1100px;
+      width:100%;
+      margin:32px auto 48px;
+      padding:0 20px;
+      flex:1;
+    }
+
+    .title-row h1 { font-size:28px; font-weight:700; }
+    .title-row p { font-size:13px; color:var(--text-muted); margin-top:4px; margin-bottom:20px; }
+
+    /* CARD */
+    .card {
+      background:#fff;
+      border-radius:14px;
+      border:1px solid var(--border-soft);
+      box-shadow:var(--shadow-soft);
+      overflow:hidden;
+    }
+
+    .card-top-border { height:6px; background:var(--accent-line); }
+
+    .card-body { padding:26px; }
+
+    /* FORM */
+    .form-field {
+      margin-bottom:16px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    label { font-size:13px; font-weight:500; }
+
+    .input-box,
+    .select-box,
+    textarea {
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--border-soft);
+      background:#fafafa;
+      font-size:14px;
+    }
+
+    textarea { resize:vertical; min-height:90px; }
+
+    /* Upload */
+    .upload-area {
+      border:1px dashed #cbd5e1;
+      padding:28px;
+      border-radius:14px;
+      background:#fcfcfc;
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    .upload-area svg { width:28px; height:28px; stroke:var(--accent-main); margin-bottom:10px; }
+    .upload-area small { font-size:11px; color:var(--text-muted); }
+
+    /* Buttons */
+    .button-row { display:flex; gap:12px; margin-top:22px; }
+
+    .btn-primary {
+      padding:10px 18px;
+      background:#1e3a8a;
+      border:none;
+      color:white;
+      border-radius:999px;
+      cursor:pointer;
+    }
+
+    .btn-secondary {
+      padding:10px 18px;
+      background:#f3f4f6;
+      border:1px solid #d1d5db;
+      border-radius:999px;
+      cursor:pointer;
+    }
+
+    /* Footer */
+    .footer {
+      background:#e4ddd1;
+      padding:16px 30px;
+      font-size:12px;
+      border-top:1px solid #cfc4b2;
+      display:flex;
+      justify-content:space-between;
+    }
+
+    /* Popup */
+    .redirect-popup {
+      position:fixed;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      padding:10px 16px;
+      background:#111;
+      color:white;
+      border-radius:8px;
+      display:none;
+      z-index:1000;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar-wrapper">
+  <header class="navbar">
+
+    <div class="nav-left">
+      <div class="nav-logo">Q</div>
+      <div class="nav-title">
+        <span class="nav-title-main">THE SEEKR</span>
+        <span class="nav-title-sub">AUS Lost &amp; Found</span>
+      </div>
+    </div>
+
+    <nav class="nav-center">
+      <a href="Dashboard.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20H4z" stroke-width="1.6"></path><path d="M10 20v-5h4v5" stroke-width="1.6"></path></svg>
+        Dashboard
+      </a>
+
+      <a href="ReportLost.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6" stroke-width="1.6"></circle><line x1="16" y1="16" x2="20" y2="20" stroke-width="1.6"></line></svg>
+        Report Lost
+      </a>
+
+      <a href="ReportFound.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="7" width="14" height="10" rx="2" stroke-width="1.6"></rect><path d="M5 10h14" stroke-width="1.6"></path></svg>
+        Report Found
+      </a>
+
+      <a href="BrowseLost.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14v11H5z" stroke-width="1.6"></path><path d="M9 11h6" stroke-width="1.6"></path></svg>
+        Lost Items
+      </a>
+
+      <a href="BrowseFound.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M7 7h10v10H7z" stroke-width="1.6"></path><path d="M9 9h6v6H9z" stroke-width="1.6"></path></svg>
+        Found Items
+      </a>
+    </nav>
+
+    <div class="nav-right">
+
+      <div id="roleToggle" class="role-toggle">
+        <span>Student</span>
+        <div class="role-track"><div class="role-thumb"></div></div>
+        <span>Security</span>
+      </div>
+
+      <div class="profile-pill">
+        <div class="profile-avatar">SS</div>
+        <div class="profile-text">
+          <span class="profile-name">Shaima Sajid</span>
+          <span class="profile-role">Student</span>
+        </div>
+      </div>
+
+    </div>
+
+  </header>
+</div>
+
+<div id="redirectPopup" class="redirect-popup">
+  Redirecting to Security Panel…
+</div>
+
+<!-- PAGE CONTENT -->
+<main class="page">
+
+  <div class="title-row">
+    <h1>Report Lost Item</h1>
+    <p>Help us find your item by providing a few details.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-top-border"></div>
+
+    <div class="card-body">
+
+      <!-- Upload -->
+      <div class="upload-area">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v10M8 9l4-4 4 4" stroke-width="1.6"></path>
+          <path d="M6 15v2h12v-2" stroke-width="1.6"></path>
+        </svg>
+
+        <label>
+          <input type="file" id="photoInput" accept="image/*" style="display:none;">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('photoInput').click()">Upload Photo</button>
+        </label>
+
+        <small id="fileName">Optional but recommended</small>
+      </div>
+
+      <!-- Item Name -->
+      <div class="form-field">
+        <label>Item Name *</label>
+        <input class="input-box" type="text" placeholder="e.g., Blue iPhone 13" required>
+      </div>
+
+      <!-- Category -->
+      <div class="form-field">
+        <label>Category *</label>
+        <select class="select-box" required>
+          <option disabled selected>Select category</option>
+          <option>Electronics</option>
+          <option>Wallet / Purse</option>
+          <option>Keys</option>
+          <option>ID / Documents</option>
+          <option>Clothing</option>
+          <option>Bag / Backpack</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div class="form-field">
+        <label>Description *</label>
+        <textarea class="input-box" placeholder="Color, brand, unique features…" required></textarea>
+      </div>
+
+      <!-- Location Lost -->
+      <div class="form-field">
+        <label>Location Lost *</label>
+        <select class="select-box" required>
+          <option disabled selected>Select location</option>
+          <option>Main Cafeteria</option>
+          <option>Library</option>
+          <option>Engineering Building</option>
+          <option>Student Center</option>
+          <option>Parking</option>
+          <option>Sports Complex</option>
+          <option>Other / Not sure</option>
+        </select>
+      </div>
+
+      <!-- Date Lost -->
+      <div class="form-field">
+        <label>Date Lost (Optional)</label>
+        <input type="date" class="input-box">
+      </div>
+
+      <!-- Time Lost -->
+      <div class="form-field">
+        <label>Time Lost (Optional)</label>
+        <input type="time" class="input-box">
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-row">
+        <button class="btn-primary">Submit Lost Report</button>
+        <button class="btn-secondary" onclick="window.location.href='Dashboard.html'">Cancel</button>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div>© 2025 The Seekr – AUS Lost & Found</div>
+  <div>COE 420 • Shaima & Team</div>
+</footer>
+
+<script>
+  // File name display
+  const photoInput = document.getElementById("photoInput");
+  const fileName = document.getElementById("fileName");
+
+  photoInput.addEventListener("change", () => {
+    fileName.textContent = photoInput.files.length
+      ? photoInput.files[0].name
+      : "Optional but recommended";
+  });
+
+  // Toggle redirect
+  const toggle = document.getElementById("roleToggle");
+  const popup = document.getElementById("redirectPopup");
+
+  toggle.addEventListener("click", () => {
+    popup.style.display = "block";
+    setTimeout(() => { window.location.href = "SecurityPanel.html"; }, 900);
+  });
+</script>
+
+</body>
+</html>
