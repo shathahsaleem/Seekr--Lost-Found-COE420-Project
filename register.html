@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seekr Register</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link href="login.css" rel="stylesheet"> <!-- using same CSS for consistency -->
+</head>
+
+<body>
+  <div class="login-wrapper">
+    <div class="glass-card">
+
+      <p class="form-tagline">Join the community ✧˖°</p>
+
+      <h1 class="page-title">Create Account</h1>
+
+      <form id="register-form" action="register" method="post">
+
+        <!-- First Name -->
+        <div class="form-input">
+          <i class='bx bx-user'></i>
+          <input type="text" name="first_name" placeholder="First Name" required>
+        </div>
+
+        <!-- Last Name -->
+        <div class="form-input">
+          <i class='bx bx-user'></i>
+          <input type="text" name="last_name" placeholder="Last Name" required>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-input">
+          <i class='bx bx-phone'></i>
+          <input type="text" name="phone" placeholder="Phone Number" required>
+        </div>
+
+        <!-- Email -->
+        <div class="form-input">
+          <i class='bx bx-envelope'></i>
+          <input type="email" name="email" placeholder="Email" required>
+        </div>
+
+        <!-- Password -->
+        <div class="form-input">
+          <i class='bx bx-lock-alt'></i>
+          <input type="password" name="password" placeholder="Password" required>
+        </div>
+
+        <!-- User Type -->
+        <div class="form-input">
+          <i class='bx bx-id-card'></i>
+          <select name="role" required>
+            <option value="" disabled selected>Select User Type</option>
+            <option value="student">Student</option>
+            <option value="professor">Professor</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+            <option value="security">Security</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-login">Register</button>
+
+      </form>
+
+      <div class="toggle-forms">
+        <p>Already have an account? <a href="index.html">Login</a></p>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
